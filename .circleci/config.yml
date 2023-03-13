@@ -32,12 +32,23 @@ jobs:
             gcloud auth activate-service-account --key-file=key.json
             gcloud auth configure-docker
             docker push gcr.io/burak-coskun/my-image:$CIRCLE_SHA1
+      - deploy:
+          name: Deploy to Stage
+          command: |
+            echo 'Deploying to Stage...'
+            echo $K8S_STAGE_CONFIG | base64 --decode > ./k8s-stage-config.json
+            echo $K8S_STAGE_SECRETS | base64 --decode > ./k8s-stage-secrets.json
+            gcloud auth activate-service-account --key-file=key.json
+            gcloud container clusters get-credentials burak-coskun-cluster --zone=europe-west1-b --project=burak-coskun-project
+            kubectl config use-context burak-coskun-cluster
+            kubectl config set-context --current --namespace=stage
+            kubectl apply -f ./k8s-stage-config.json
+            kubectl apply -f ./k8s-stage-secrets.json
   deploy-to-prod:
     executor:
-      name: some-executor
-      image: some-image
-    requires:
-      - build
+      name: my-executor
+      docker:
+        - image: circleci/node:14.18.1
     steps:
       - run:
           name: Deploy to Prod
@@ -48,6 +59,4 @@ jobs:
             gcloud auth activate-service-account --key-file=key.json
             gcloud container clusters get-credentials burak-coskun-cluster --zone=europe-west1-b --project=burak-coskun-project
             kubectl config use-context burak-coskun-cluster
-            kubectl config set-context --current --namespace=production
-            kubectl apply -f ./k8s-prod-config.json
-            kubectl apply -f ./k8s-prod-secrets.json
+            kubectl config set-context --current
