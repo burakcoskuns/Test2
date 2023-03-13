@@ -55,8 +55,4 @@ jobs:
           command: |
             echo 'Deploying to Prod...'
             echo $K8S_PROD_CONFIG | base64 --decode > ./k8s-prod-config.json
-            echo $K8S_PROD_SECRETS | base64 --decode > ./k8s-prod-secrets.json
-            gcloud auth activate-service-account --key-file=key.json
-            gcloud container clusters get-credentials burak-coskun-cluster --zone=europe-west1-b --project=burak-coskun-project
-            kubectl config use-context burak-coskun-cluster
-            kubectl config set-context --current
+            echo $K8S_PROD_SECRETS | base64 --decode > ./k8s-prod-secrets
